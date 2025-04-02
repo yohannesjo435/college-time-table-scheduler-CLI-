@@ -201,6 +201,7 @@ int main() {
             cout << "Exiting...\n";
         } else {
             cout << "Invalid choice. Please try again.\n";
+            break;
         }
 
     } while (choice != 9);
