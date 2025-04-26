@@ -187,7 +187,7 @@ public:
         cout << endl;
     }
 
-    void displayGraphCLI()
+    void displayGraph()
     {
         cout << "Course Prerequisite Graph:" << endl;
         for (const auto &course : adj)
@@ -272,7 +272,7 @@ int main()
             timetable.DFS(course);
             break;
         case 8:
-            timetable.displayGraphCLI();
+            timetable.displayGraph();
             break;
         case 9:
             cout << "Exiting" << endl;
