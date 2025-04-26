@@ -2,22 +2,26 @@
 
 
 ## Overview
-The College Timetable Scheduler is a command-line application written in C++ that allows users to manage and visualize their college courses and associated time slots. The application uses a weighted graph to represent courses and their scheduling relationships.
+The College Timetable Scheduler is a command-line application written in C++ that allows users to manage and visualize their college courses and associated prerequisites. The application uses a graph to represent courses and their relationships.
 
 ## Features
 - Add courses to the timetable.
-- Assign time slots (in hours) to each course.
-- Display the current timetable showing courses and their scheduled time slots.
-- Detect and display conflicts between courses.
+- Add prerequisites for each course.
+- Delete courses from the timetable.
+- Update existing prerequisites.
 - Perform BFS and DFS traversals of the course graph.
+- Visualize the course prerequisite relationships.
+- Display the current timetable showing courses and their prerequisites.
+
 
 ## Requirements
 - C++ compiler (Visual Studio, Code Blocks) or any editor that run c++
 
 ## How to Run
-1. **Clone the Repository** (if applicable):
-   ```bash
+1. Clone the Repository :
+ 
    git clone https://github.com/yohannesjo435/college-time-table-scheduler-CLI-.git
+
    cd college-time-table-scheduler
 
 ## Developers
