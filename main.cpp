@@ -4,69 +4,71 @@
 #include <vector>
 #include <queue>
 #include <stack>
+#include <algorithm>
 
 using namespace std;
 
 class Graph
 {
-    unordered_map<string, vector<pair<string, int>>> adj;
-    unordered_map<string, vector<string>> conflicts;
+    unordered_map<string, vector<string>> adj;
 
 public:
     Graph()
     {
-        adj["Math101"] = {}; // instantiating  constructor so that we dont have to call the function to enter courses inside the main
-        conflicts["Math101"] = {};
-
+        adj["Disctete Maths"] = {};
         adj["DSA1021"] = {};
-        conflicts["DSA1021"] = {};
-
         adj["ADB1032"] = {};
-        conflicts["ADB1032"] = {};
+        adj["oop"] = {};
+        adj["FDB"] = {};
+        adj["Basic Programming"] = {};
+
+
+         adj["DSA1021"].push_back("Disctete Maths");
+         adj["ADB1012"].push_back("FDB");
+         adj["oop"].push_back("Basic Programming");
+         adj["FDB"].push_back("Disctete Maths");
+         adj["DSA1021"].push_back("Basic Programming");
+
     }
-    // adding node
+
+
     void addCourse(const string &course)
     {
         adj[course];
-        conflicts[course];
+
     }
 
-    void addTimeSlot(const string &course, int duration)
+
+    void addPrerequisite(const string &course, const string &prerequisite)
     {
-        // Check if the time slot already exists in any course(conflict detection)
+
         for (const auto &pair : adj)
         {
-            for (const auto &timeSlot : pair.second)
+            if (pair.first == course)
             {
-
-                if (timeSlot.second == duration)
-                { // Check if the time slot already exists
-                    cout << "Time slot of " << duration << " hours already exists for course " << pair.first << ".\n";
-                    // Add an edge to show the conflict happening is bidirectional
-                    conflicts[course].push_back(pair.first);
-                    conflicts[pair.first].push_back(course);
-                    return; // Prevent adding the same time slot for any course
+                for (const auto &prereq : pair.second)
+                {
+                    if (prereq == prerequisite)
+                    {
+                        cout << "Prerequisite already exists between " << course << " and " << prerequisite << endl;
+                        return;
+                    }
                 }
+                adj[course].push_back(prerequisite);
+                cout << "Prerequisite added: " << prerequisite << " for course " << course << endl;
+                return;
             }
         }
 
-        if (adj.find(course) != adj.end())
-        {
-            adj[course].emplace_back(course, duration); // Add new time slot
-            cout << "Time slot added for " << course << endl;
-        }
-        else
-        {
-            cout << "Course not found: " << course << endl;
-        }
+        cout << "Course not found: " << course << endl;
     }
 
-    // deleting node
+
     void deleteCourse(const string &course)
     {
         if (adj.erase(course))
         {
-            conflicts.erase(course); // Remove conflicts associated with the course
+
             cout << "Course deleted: " << course << endl;
         }
         else
@@ -74,124 +76,108 @@ public:
             cout << "Course not found: " << course << endl;
         }
     }
-    // updating node
-    void updateLastTimeSlot(const string &course, int newDuration)
+
+
+    void updatePrerequisite(const string &course, const string &oldPrerequisite, const string &newPrerequisite)
     {
-        if (adj.find(course) != adj.end() && !adj[course].empty())
+        if (adj.find(course) != adj.end())
         {
-            adj[course].back().second = newDuration; // Update the last added time slot
-            cout << "Last time slot updated for " << course << " to " << newDuration << " hours" << endl;
+            for (auto &prerequisite : adj[course])
+            {
+                if (prerequisite == oldPrerequisite)
+                {
+                    prerequisite = newPrerequisite;
+                    cout << "Prerequisite updated from " << oldPrerequisite << " to " << newPrerequisite << " for course " << course << endl;
+                    return;
+                }
+            }
+            cout << "Old prerequisite not found" << endl;
         }
         else
         {
-            cout << "Invalid course or no time slots available" << endl;
+            cout << "Course not found: " << course << endl;
         }
     }
+
 
     void displayTimetable()
     {
-        cout << "College Timetable:" << endl;
+        cout << "College Timetable (Prerequisites):" << endl;
         for (const auto &pair : adj)
         {
-            cout << pair.first << " has the following time slots:\n";
-            for (const auto &timeSlot : pair.second)
+            cout << pair.first << " has prerequisites: ";
+            if (pair.second.empty())
             {
-                cout << timeSlot.second << " hours" << endl;
-                ;
+                cout << "None" << endl;
             }
-        }
-    }
-
-    // Display conflicting courses
-    void displayConflicts()
-    {
-        cout << "Course Conflicts:" << endl;
-        for (const auto &pair : conflicts)
-        {
-            if (!pair.second.empty())
+            else
             {
-                cout << pair.first << " conflicts with: ";
-                for (const auto &conflict : pair.second)
+                for (const auto &prereq : pair.second)
                 {
-                    cout << conflict << " ";
+                    cout << prereq << " ";
                 }
                 cout << endl;
             }
         }
     }
 
-    // BFS traversal
-    void BFS(const string &start)
+
+
+
+   void BFS(const string &start)
+{
+    if (adj.find(start) == adj.end())
     {
-        if (adj.find(start) == adj.end())
-        {
-            cout << "Error: Course '" << start << "' does not exist" << endl;
-            return;
-        }
-
-        queue<string> q;
-        unordered_map<string, bool> visited; // to ensure each course is visited only once in bfs
-
-        q.push(start);
-        visited[start] = true; // preventing the bfs from visitng the start course again
-
-        cout << "BFS Traversal: ";
-
-        while (!q.empty())
-        {
-            string course = q.front();
-            q.pop(); // removes the course that was just visited from the front of the queue
-            cout << course << " ";
-
-            // to traverse all courses
-
-            if (adj.find(course) != adj.end())
-            { // Ensure course exists in adjacency list
-                for (auto &neighbor : adj[course])
-                {
-                    if (!visited[neighbor.first])
-                    {
-                        visited[neighbor.first] = true;
-                        q.push(neighbor.first);
-                    }
-                }
-            }
-
-            // traversing in bfs when there is cocnflict between courses
-            for (auto &conflictCourse : conflicts[course])
-            {
-                if (!visited[conflictCourse])
-                {
-                    visited[conflictCourse] = true;
-                    q.push(conflictCourse);
-                }
-            }
-        }
-        cout << endl;
+        cout << "Error: Course '" << start << "' does not exist" << endl;
+        return;
     }
 
-    // recursive function used in the main dfs function so that it will visit and print the visited courses
-    void DFSHelper(const string &course, unordered_map<string, bool> &visited)
+    queue<string> q;
+    unordered_map<string, bool> visited;
+
+    q.push(start);
+    visited[start] = true;
+
+    cout << "BFS Traversal: ";
+
+    while (!q.empty())
     {
-        visited[course] = true;
+        string course = q.front();
+        q.pop();
         cout << course << " ";
 
-        for (auto &neighbor : adj[course])
+        for (const auto &prerequisite : adj[course])
         {
-            if (!visited[neighbor.first])
+            if (!visited[prerequisite])
             {
-                DFSHelper(neighbor.first, visited);
+                visited[prerequisite] = true;
+                q.push(prerequisite);
             }
         }
     }
+    cout << endl;
+}
+
+
+   void DFSHelper(const string &course, unordered_map<string, bool> &visited)
+{
+    visited[course] = true;
+    cout << course << " ";
+
+    for (const auto &prerequisite : adj[course])
+    {
+        if (!visited[prerequisite])
+        {
+            DFSHelper(prerequisite, visited);
+        }
+    }
+}
 
     void DFS(const string &start)
     {
-
         if (adj.find(start) == adj.end())
         {
             cout << "Error: Course '" << start << "' does not exist" << endl;
-            ;
             return;
         }
 
@@ -199,19 +185,25 @@ public:
         cout << "DFS Traversal: ";
         DFSHelper(start, visited);
         cout << endl;
-        for (auto &conflictCourse : conflicts[start])
+    }
+
+    void displayGraphCLI()
+    {
+        cout << "Course Prerequisite Graph:" << endl;
+        for (const auto &course : adj)
         {
-            if (!visited[conflictCourse])
+            cout << course.first << " -> ";
+            if (course.second.empty())
             {
-                DFSHelper(conflictCourse, visited);
+                cout << "No prerequisites" << endl;
             }
-        }
-        // printing every neighbouring course even if there is no conflict
-        for (auto &coursePair : adj)
-        {
-            if (!visited[coursePair.first])
+            else
             {
-                DFSHelper(coursePair.first, visited);
+                for (const auto &prerequisite : course.second)
+                {
+                    cout << prerequisite << " ";
+                }
+                cout << endl;
             }
         }
     }
@@ -221,22 +213,19 @@ int main()
 {
     Graph timetable;
     int choice;
-    int duration;
-    int newDuration;
+    string course, prerequisite, newPrerequisite;
 
-    timetable.addTimeSlot("ADB1032", 4);
-    string course;
     for (choice = 1; choice <= 9; choice++)
     {
         cout << "College Timetable Scheduler" << endl;
         cout << "1. Add Course" << endl;
-        cout << "2. Add Time Slot" << endl;
+        cout << "2. Add Prerequisite" << endl;
         cout << "3. Delete Course" << endl;
-        cout << "4. Update Last Time Slot" << endl;
+        cout << "4. Update Prerequisite" << endl;
         cout << "5. Display Timetable" << endl;
-        cout << "6. Display Conflicts" << endl;
-        cout << "7. BFS Traversal" << endl;
-        cout << "8. DFS Traversal" << endl;
+        cout << "6. BFS Traversal" << endl;
+        cout << "7. DFS Traversal" << endl;
+        cout << "8. Display Graph" << endl;
         cout << "9. Exit" << endl;
         cout << "Enter your choice: ";
         cin >> choice;
@@ -247,14 +236,13 @@ int main()
             cout << "Enter course name: " << endl;
             cin >> course;
             timetable.addCourse(course);
-            cout << "Course added: " << course << endl;
             break;
         case 2:
             cout << "Enter course name: " << endl;
             cin >> course;
-            cout << "Enter time slot (in hours): " << endl;
-            cin >> duration;
-            timetable.addTimeSlot(course, duration);
+            cout << "Enter prerequisite course: " << endl;
+            cin >> prerequisite;
+            timetable.addPrerequisite(course, prerequisite);
             break;
         case 3:
             cout << "Enter course name to delete: " << endl;
@@ -264,28 +252,30 @@ int main()
         case 4:
             cout << "Enter course name: " << endl;
             cin >> course;
-            cout << "Enter new hours for the last time slot: " << endl;
-            cin >> newDuration;
-            timetable.updateLastTimeSlot(course, newDuration);
+            cout << "Enter old prerequisite: " << endl;
+            cin >> prerequisite;
+            cout << "Enter new prerequisite: " << endl;
+            cin >> newPrerequisite;
+            timetable.updatePrerequisite(course, prerequisite, newPrerequisite);
             break;
         case 5:
             timetable.displayTimetable();
             break;
-        case 6:
-            timetable.displayConflicts();
-            break;
-        case 7:
+       case 6:
             cout << "Enter starting course for BFS: " << endl;
             cin >> course;
             timetable.BFS(course);
             break;
-        case 8:
+        case 7:
             cout << "Enter starting course for DFS: " << endl;
             cin >> course;
             timetable.DFS(course);
             break;
+        case 8:
+            timetable.displayGraphCLI();
+            break;
         case 9:
-            cout << "Exiting";
+            cout << "Exiting" << endl;
             break;
         default:
             cout << "Invalid choice. Please try again." << endl;
